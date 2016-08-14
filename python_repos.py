@@ -40,20 +40,41 @@ repo_dicts = response_dict['items']
 #     print("Description", repo['description'])
 
 # create 2 empty lists to store the data to include in the chart
-names, stars = [], []
+names, plot_dicts = [], []
 for repo in repo_dicts:
     # name of each list to label the bar
     names.append(repo['name'])
-    # height of the bars
-    stars.append(repo['stargazers_count'])
+    plot = {
+        # bar height
+        'value': repo['stargazers_count'],
+        # allows us to hover over bar and read description of repo
+        'label': repo['description'],
+        # Pygal uses URL assoc w xlink to turn each bar into an active link
+        'xlink': repo['html_url']
+    }
+    plot_dicts.append(plot)
 
-# make visualization
 # LightenStyle class (alias LS), LightColorizedStyle class (alias LCS)
 my_style = LS('#333366', base_style=LCS)
+# instance of the Pygal Config class
+my_config = pygal.Config()
+# lesson learned - pygal cannot accept all this info as one object
+# need to do line by line specification of object.key = value
+my_config.x_label_rotation = 45
+my_config.show_legend = False
+my_config.title_font_size = 24
+my_config.label_font_size = 14
+my_config.major_label_font_size = 18
+# shorten longer project names to 15 chars
+my_config.truncate_label = 15
+# hide horiz lines on graph
+my_config.show_y_guides = False
+my_config.width = 1000
+
 # add in my_styles, specify x_label rotation, do not show legend
-chart = pygal.Bar(style=my_style, x_label_rotation=45, show_legend=False)
+chart = pygal.Bar(my_config, style=my_style)
 chart.title = 'Most Starred Python Projects on Github'
 chart.x_labels = names
 # we don't need the data series to be labeled
-chart.add('',stars)
+chart.add('',plot_dicts)
 chart.render_to_file('python_repos.svg')
